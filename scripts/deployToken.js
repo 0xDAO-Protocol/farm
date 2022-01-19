@@ -6,12 +6,12 @@
 const hre = require("hardhat");
 
 async function main() {
-  const OHEX = await hre.ethers.getContractFactory("OHEX");
-  const ohex = await OHEX.deploy();
+  const OXD = await hre.ethers.getContractFactory("OXD");
+  const oxd = await OXD.deploy();
 
-  await ohex.deployed();
+  await oxd.deployed();
 
-  console.log("OHEX token deployed to:", ohex.address);
+  console.log("OXD token deployed to:", oxd.address); // 0x21898c6F3149FCFEd4Bc6248d5aA6AB1807012CE
 }
 
 // We recommend this pattern to be able to use async/await everywhere

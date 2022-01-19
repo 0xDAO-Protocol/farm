@@ -26,13 +26,13 @@ contract MasterChef is Ownable {
         uint256 amount;     // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt. See explanation below.
         //
-        // We do some fancy math here. Basically, any point in time, the amount of OHEX
+        // We do some fancy math here. Basically, any point in time, the amount of OXD
         // entitled to a user but is pending to be distributed is:
         //
-        //   pending reward = (user.amount * pool.accOHEXPerShare) - user.rewardDebt
+        //   pending reward = (user.amount * pool.accOXDPerShare) - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-        //   1. The pool's `accOHEXPerShare` (and `lastRewardBlock`) gets updated.
+        //   1. The pool's `accOXDPerShare` (and `lastRewardBlock`) gets updated.
         //   2. User receives the pending reward sent to his/her address.
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
@@ -41,21 +41,21 @@ contract MasterChef is Ownable {
     // Info of each pool.
     struct PoolInfo {
         IERC20 lpToken;           // Address of LP token contract.
-        uint256 allocPoint;       // How many allocation points assigned to this pool. OHEXs to distribute per block.
-        uint256 lastRewardTime;  // Last block time that OHEXs distribution occurs.
-        uint256 accOHEXPerShare; // Accumulated OHEXs per share, times 1e12. See below.
+        uint256 allocPoint;       // How many allocation points assigned to this pool. OXDs to distribute per block.
+        uint256 lastRewardTime;  // Last block time that OXDs distribution occurs.
+        uint256 accOXDPerShare; // Accumulated OXDs per share, times 1e12. See below.
     }
 
     // such a cool token!
-    OHEX public ohex;
+    OXD public oxd;
 
     // Dev address.
     address public devaddr;
-    // OHEX tokens created per block.
-    uint256 public ohexPerSecond;
+    // OXD tokens created per block.
+    uint256 public oxdPerSecond;
 
-    // set a max OHEX per second, which can never be higher than 1 per second
-    uint256 public constant maxOHEXPerSecond = 1e18;
+    // set a max OXD per second, which can never be higher than 1 per second
+    uint256 public constant maxOXDPerSecond = 1e18;
 
     uint256 public constant MaxAllocPoint = 4000;
 
@@ -65,9 +65,9 @@ contract MasterChef is Ownable {
     mapping (uint256 => mapping (address => UserInfo)) public userInfo;
     // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
-    // The block time when OHEX mining starts.
+    // The block time when OXD mining starts.
     uint256 public immutable startTime;
-    // The block time when OHEX mining stops.
+    // The block time when OXD mining stops.
     uint256 public immutable endTime;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
@@ -75,15 +75,15 @@ contract MasterChef is Ownable {
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
     constructor(
-        OHEX _ohex,
+        OXD _oxd,
         address _devaddr,
-        uint256 _ohexPerSecond,
+        uint256 _oxdPerSecond,
         uint256 _startTime,
         uint256 _endTime
     ) {
-        ohex = _ohex;
+        oxd = _oxd;
         devaddr = _devaddr;
-        ohexPerSecond = _ohexPerSecond;
+        oxdPerSecond = _oxdPerSecond;
         startTime = _startTime;
         endTime = _endTime;
     }
@@ -92,16 +92,16 @@ contract MasterChef is Ownable {
         return poolInfo.length;
     }
 
-    // Changes OHEX token reward per second, with a cap of maxOHEX per second
+    // Changes OXD token reward per second, with a cap of maxOXD per second
     // Good practice to update pools without messing up the contract
-    function setOHEXPerSecond(uint256 _ohexPerSecond) external onlyOwner {
-        require(_ohexPerSecond <= maxOHEXPerSecond, "setOHEXPerSecond: too many OHEXs!");
+    function setOXDPerSecond(uint256 _oxdPerSecond) external onlyOwner {
+        require(_oxdPerSecond <= maxOXDPerSecond, "setOXDPerSecond: too many OXDs!");
 
         // This MUST be done or pool rewards will be calculated with new boo per second
         // This could unfairly punish small pools that dont have frequent deposits/withdraws/harvests
         massUpdatePools(); 
 
-        ohexPerSecond = _ohexPerSecond;
+        oxdPerSecond = _oxdPerSecond;
     }
 
     function checkForDuplicate(IERC20 _lpToken) internal view {
@@ -126,11 +126,11 @@ contract MasterChef is Ownable {
             lpToken: _lpToken,
             allocPoint: _allocPoint,
             lastRewardTime: lastRewardTime,
-            accOHEXPerShare: 0
+            accOXDPerShare: 0
         }));
     }
 
-    // Update the given pool's OHEX allocation point. Can only be called by the owner.
+    // Update the given pool's OXD allocation point. Can only be called by the owner.
     function set(uint256 _pid, uint256 _allocPoint) external onlyOwner {
         require(_allocPoint <= MaxAllocPoint, "add: too many alloc points!!");
 
@@ -156,18 +156,18 @@ contract MasterChef is Ownable {
         }
     }
 
-    // View function to see pending OHEXs on frontend.
-    function pendingOHEX(uint256 _pid, address _user) external view returns (uint256) {
+    // View function to see pending OXDs on frontend.
+    function pendingOXD(uint256 _pid, address _user) external view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accOHEXPerShare = pool.accOHEXPerShare;
+        uint256 accOXDPerShare = pool.accOXDPerShare;
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         if (block.timestamp > pool.lastRewardTime && lpSupply != 0) {
             uint256 multiplier = getMultiplier(pool.lastRewardTime, block.timestamp);
-            uint256 ohexReward = multiplier.mul(ohexPerSecond).mul(pool.allocPoint).div(totalAllocPoint);
-            accOHEXPerShare = accOHEXPerShare.add(ohexReward.mul(1e12).div(lpSupply));
+            uint256 oxdReward = multiplier.mul(oxdPerSecond).mul(pool.allocPoint).div(totalAllocPoint);
+            accOXDPerShare = accOXDPerShare.add(oxdReward.mul(1e12).div(lpSupply));
         }
-        return user.amount.mul(accOHEXPerShare).div(1e12).sub(user.rewardDebt);
+        return user.amount.mul(accOXDPerShare).div(1e12).sub(user.rewardDebt);
     }
 
     // Update reward variables for all pools. Be careful of gas spending!
@@ -190,16 +190,16 @@ contract MasterChef is Ownable {
             return;
         }
         uint256 multiplier = getMultiplier(pool.lastRewardTime, block.timestamp);
-        uint256 ohexReward = multiplier.mul(ohexPerSecond).mul(pool.allocPoint).div(totalAllocPoint);
+        uint256 oxdReward = multiplier.mul(oxdPerSecond).mul(pool.allocPoint).div(totalAllocPoint);
 
-        ohex.mint(devaddr, ohexReward.div(10));
-        ohex.mint(address(this), ohexReward);
+        oxd.mint(devaddr, oxdReward.div(10));
+        oxd.mint(address(this), oxdReward);
 
-        pool.accOHEXPerShare = pool.accOHEXPerShare.add(ohexReward.mul(1e12).div(lpSupply));
+        pool.accOXDPerShare = pool.accOXDPerShare.add(oxdReward.mul(1e12).div(lpSupply));
         pool.lastRewardTime = block.timestamp;
     }
 
-    // Deposit LP tokens to MasterChef for OHEX allocation.
+    // Deposit LP tokens to MasterChef for OXD allocation.
     function deposit(uint256 _pid, uint256 _amount) public {
 
         PoolInfo storage pool = poolInfo[_pid];
@@ -207,13 +207,13 @@ contract MasterChef is Ownable {
 
         updatePool(_pid);
 
-        uint256 pending = user.amount.mul(pool.accOHEXPerShare).div(1e12).sub(user.rewardDebt);
+        uint256 pending = user.amount.mul(pool.accOXDPerShare).div(1e12).sub(user.rewardDebt);
 
         user.amount = user.amount.add(_amount);
-        user.rewardDebt = user.amount.mul(pool.accOHEXPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accOXDPerShare).div(1e12);
 
         if(pending > 0) {
-            safeOHEXTransfer(msg.sender, pending);
+            safeOXDTransfer(msg.sender, pending);
         }
         pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 
@@ -229,13 +229,13 @@ contract MasterChef is Ownable {
 
         updatePool(_pid);
 
-        uint256 pending = user.amount.mul(pool.accOHEXPerShare).div(1e12).sub(user.rewardDebt);
+        uint256 pending = user.amount.mul(pool.accOXDPerShare).div(1e12).sub(user.rewardDebt);
 
         user.amount = user.amount.sub(_amount);
-        user.rewardDebt = user.amount.mul(pool.accOHEXPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accOXDPerShare).div(1e12);
 
         if(pending > 0) {
-            safeOHEXTransfer(msg.sender, pending);
+            safeOXDTransfer(msg.sender, pending);
         }
         pool.lpToken.safeTransfer(address(msg.sender), _amount);
         
@@ -256,13 +256,13 @@ contract MasterChef is Ownable {
 
     }
 
-    // Safe OHEX transfer function, just in case if rounding error causes pool to not have enough OHEXs.
-    function safeOHEXTransfer(address _to, uint256 _amount) internal {
-        uint256 ohexBal = ohex.balanceOf(address(this));
-        if (_amount > ohexBal) {
-            ohex.transfer(_to, ohexBal);
+    // Safe OXD transfer function, just in case if rounding error causes pool to not have enough OXDs.
+    function safeOXDTransfer(address _to, uint256 _amount) internal {
+        uint256 oxdBal = oxd.balanceOf(address(this));
+        if (_amount > oxdBal) {
+            oxd.transfer(_to, oxdBal);
         } else {
-            ohex.transfer(_to, _amount);
+            oxd.transfer(_to, _amount);
         }
     }
 

@@ -7,12 +7,12 @@ const hre = require("hardhat");
 
 async function main() {
 	const Farm = await hre.ethers.getContractFactory("MasterChef");
-	const ohex = "0x10372bceBe0eA5DD75357cD947391871a0327D18";
+	const oxd = "0x21898c6F3149FCFEd4Bc6248d5aA6AB1807012CE";
 	const devAddr = "";
 	const ohexPerSecond = "";
 	const startTime = 0;
 	const endTime = 0;
-	const farm = await Farm.deploy(ohex, devAddr, ohexPerSecond, startTime, endTime);
+	const farm = await Farm.deploy(oxd, devAddr, ohexPerSecond, startTime, endTime);
 
 	await farm.deployed();
 
