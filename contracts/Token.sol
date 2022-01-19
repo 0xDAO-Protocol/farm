@@ -10,8 +10,6 @@ import "./utils/Ownable.sol";
  * @author 0xDAO
  */
 contract OXD is ERC20, Ownable {
-    address public minter;
-
     constructor() ERC20("0xDAO", "OXD") {}
 
     function mint(address _to, uint256 _amount) external onlyOwner {

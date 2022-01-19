@@ -11,7 +11,7 @@ async function main() {
 
   await oxd.deployed();
 
-  console.log("OXD token deployed to:", oxd.address); // 0x21898c6F3149FCFEd4Bc6248d5aA6AB1807012CE
+  console.log("OXD token deployed to:", oxd.address); // 0xB40C1882fA3cDf3c0D26Ae688a7bA306845f07b0
 }
 
 // We recommend this pattern to be able to use async/await everywhere
