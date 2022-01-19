@@ -49,14 +49,9 @@ contract MasterChef is Ownable {
     // such a cool token!
     OXD public oxd;
 
-    // Dev address.
-    address public devaddr;
-    // OXD tokens created per block.
-    uint256 public oxdPerSecond;
-
-    // set a max OXD per second, which can never be higher than 1 per second
-    uint256 public constant maxOXDPerSecond = 1e18;
-
+    // OXD tokens created per second.
+    uint256 public immutable oxdPerSecond;
+ 
     uint256 public constant MaxAllocPoint = 4000;
 
     // Info of each pool.
@@ -76,13 +71,11 @@ contract MasterChef is Ownable {
 
     constructor(
         OXD _oxd,
-        address _devaddr,
         uint256 _oxdPerSecond,
         uint256 _startTime,
         uint256 _endTime
     ) {
         oxd = _oxd;
-        devaddr = _devaddr;
         oxdPerSecond = _oxdPerSecond;
         startTime = _startTime;
         endTime = _endTime;
@@ -90,18 +83,6 @@ contract MasterChef is Ownable {
 
     function poolLength() external view returns (uint256) {
         return poolInfo.length;
-    }
-
-    // Changes OXD token reward per second, with a cap of maxOXD per second
-    // Good practice to update pools without messing up the contract
-    function setOXDPerSecond(uint256 _oxdPerSecond) external onlyOwner {
-        require(_oxdPerSecond <= maxOXDPerSecond, "setOXDPerSecond: too many OXDs!");
-
-        // This MUST be done or pool rewards will be calculated with new boo per second
-        // This could unfairly punish small pools that dont have frequent deposits/withdraws/harvests
-        massUpdatePools(); 
-
-        oxdPerSecond = _oxdPerSecond;
     }
 
     function checkForDuplicate(IERC20 _lpToken) internal view {
@@ -143,14 +124,10 @@ contract MasterChef is Ownable {
     // Return reward multiplier over the given _from to _to timestamp.
     function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
         _from = _from > startTime ? _from : startTime;
-        if (_to < startTime) {
+        if (_to < startTime || _from >= endTime) {
             return 0;
-        }
-
-        if (_to <= endTime) {
+        } else if (_to <= endTime) {
             return _to.sub(_from);
-        } else if (_from >= endTime) {
-            return 0;
         } else {
             return endTime.sub(_from);
         }
@@ -192,7 +169,6 @@ contract MasterChef is Ownable {
         uint256 multiplier = getMultiplier(pool.lastRewardTime, block.timestamp);
         uint256 oxdReward = multiplier.mul(oxdPerSecond).mul(pool.allocPoint).div(totalAllocPoint);
 
-        oxd.mint(devaddr, oxdReward.div(10));
         oxd.mint(address(this), oxdReward);
 
         pool.accOXDPerShare = pool.accOXDPerShare.add(oxdReward.mul(1e12).div(lpSupply));
@@ -200,10 +176,9 @@ contract MasterChef is Ownable {
     }
 
     // Deposit LP tokens to MasterChef for OXD allocation.
-    function deposit(uint256 _pid, uint256 _amount) public {
-
-        PoolInfo storage pool = poolInfo[_pid];
-        UserInfo storage user = userInfo[_pid][msg.sender];
+    function deposit(uint256 _pid, uint256 _amount, address _user) public {
+        PoolInfo memory pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][_user];
 
         updatePool(_pid);
 
@@ -213,7 +188,7 @@ contract MasterChef is Ownable {
         user.rewardDebt = user.amount.mul(pool.accOXDPerShare).div(1e12);
 
         if(pending > 0) {
-            safeOXDTransfer(msg.sender, pending);
+            safeOXDTransfer(_user, pending);
         }
         pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 
@@ -222,7 +197,7 @@ contract MasterChef is Ownable {
 
     // Withdraw LP tokens from MasterChef.
     function withdraw(uint256 _pid, uint256 _amount) public {  
-        PoolInfo storage pool = poolInfo[_pid];
+        PoolInfo memory pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
 
         require(user.amount >= _amount, "withdraw: not good");
@@ -242,9 +217,19 @@ contract MasterChef is Ownable {
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
+    function harvestAll() public {
+        uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid < length; ++pid) {
+            UserInfo memory user = userInfo[pid][msg.sender];
+            if (user.amount > 0) {
+                deposit(pid, 0, msg.sender);
+            }
+        }
+    }
+
     // Withdraw without caring about rewards. EMERGENCY ONLY.
     function emergencyWithdraw(uint256 _pid) public {
-        PoolInfo storage pool = poolInfo[_pid];
+        PoolInfo memory pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
 
         uint oldUserAmount = user.amount;
@@ -266,9 +251,4 @@ contract MasterChef is Ownable {
         }
     }
 
-    // Update dev address by the previous dev.
-    function dev(address _devaddr) public {
-        require(msg.sender == devaddr, "dev: wut?");
-        devaddr = _devaddr;
-    }
 }
