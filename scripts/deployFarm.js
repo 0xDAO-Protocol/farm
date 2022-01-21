@@ -9,8 +9,8 @@ async function main() {
 	const Farm = await hre.ethers.getContractFactory("MasterChef");
 	const oxd = "0xc165d941481e68696f43EE6E99BFB2B23E0E3114";
 	const ohexPerSecond = "1000000000000000000000";
-	const startTime = 1642739492;
-	const endTime = 1642843112;
+	const startTime = 1642795200;
+	const endTime = startTime + 2000000;
 	const farm = await Farm.deploy(oxd, ohexPerSecond, startTime, endTime);
 
 	await farm.deployed();
@@ -56,7 +56,7 @@ async function main() {
 	let tx;
 	for (let i = 0; i < pairs.length; i++) {
 		tx = await farm.add(pairs[i][1], pairs[i][0]);
-		await tx.wait(5);
+		await tx.wait(7);
 		console.log(`Added pair for ${pairs[i][0]}`);
 	}
 }
