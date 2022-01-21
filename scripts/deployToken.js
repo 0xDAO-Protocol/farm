@@ -11,6 +11,11 @@ async function main() {
 
   await oxd.deployed();
 
+  await run("verify:verify", {
+    address: oxd.address,
+    constructorArguments: [],
+})
+
   console.log("OXD token deployed to:", oxd.address); // 
 }
 

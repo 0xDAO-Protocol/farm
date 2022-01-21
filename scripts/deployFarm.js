@@ -9,13 +9,19 @@ async function main() {
 	const Farm = await hre.ethers.getContractFactory("MasterChef");
 	const oxd = "0xc165d941481e68696f43EE6E99BFB2B23E0E3114";
 	const ohexPerSecond = "1000000000000000000000";
-	const startTime = 1642556223;
-	const endTime = 1642567023;
+	const startTime = 1642739492;
+	const endTime = 1642843112;
 	const farm = await Farm.deploy(oxd, ohexPerSecond, startTime, endTime);
 
 	await farm.deployed();
 
 	console.log("Farm deployed to:", farm.address);
+
+	await run("verify:verify", {
+		address: farm.address,
+		constructorArguments: [oxd, ohexPerSecond, startTime, endTime],
+	})
+
 	const pool2 = ["0xD5fa400a24EB2EA55BC5Bd29c989E70fbC626FfF", 0];
 	const wftm = ["0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83", 500];
 	const eth = ["0x74b23882a30290451A17c44f4F05243b6b58C76d", 500];
@@ -49,7 +55,7 @@ async function main() {
 	];
 	let tx;
 	for (let i = 0; i < pairs.length; i++) {
-		tx = await farm.add(pairs[i][0], pairs[i][1]);
+		tx = await farm.add(pairs[i][1], pairs[i][0]);
 		await tx.wait(5);
 		console.log(`Added pair for ${pairs[i][0]}`);
 	}
