@@ -219,20 +219,28 @@ contract MasterChef is Ownable {
 
     function harvestAll() public {
         uint256 length = poolInfo.length;
+        uint calc;
+        uint pending;
+        UserInfo storage user;
+        PoolInfo storage pool;
+        uint totalPending;
         for (uint256 pid = 0; pid < length; ++pid) {
-            UserInfo storage user = userInfo[pid][msg.sender];
+            user = userInfo[pid][msg.sender];
             if (user.amount > 0) {
-                PoolInfo storage pool = poolInfo[pid];
+                pool = poolInfo[pid];
                 updatePool(pid);
 
-                uint calc = user.amount.mul(pool.accOXDPerShare).div(1e12);
-                uint pending = calc.sub(user.rewardDebt);
+                calc = user.amount.mul(pool.accOXDPerShare).div(1e12);
+                pending = calc.sub(user.rewardDebt);
                 user.rewardDebt = calc;
 
                 if(pending > 0) {
-                    safeOXDTransfer(msg.sender, pending);
+                    totalPending+=pending;
                 }
             }
+        }
+        if (totalPending > 0) {
+            safeOXDTransfer(msg.sender, totalPending);
         }
     }
 
