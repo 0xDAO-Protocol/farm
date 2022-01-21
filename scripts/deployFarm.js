@@ -16,7 +16,7 @@ async function main() {
 	await farm.deployed();
 
 	console.log("Farm deployed to:", farm.address);
-	const pool2 = ["0xD5fa400a24EB2EA55BC5Bd29c989E70fbC626FfF", 1500];
+	const pool2 = ["0xD5fa400a24EB2EA55BC5Bd29c989E70fbC626FfF", 0];
 	const wftm = ["0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83", 500];
 	const eth = ["0x74b23882a30290451A17c44f4F05243b6b58C76d", 500];
 	const btc = ["0x321162Cd933E2Be498Cd2267a90534A804051b11", 500];

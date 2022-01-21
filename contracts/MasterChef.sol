@@ -176,9 +176,9 @@ contract MasterChef is Ownable {
     }
 
     // Deposit LP tokens to MasterChef for OXD allocation.
-    function deposit(uint256 _pid, uint256 _amount, address _user) public {
-        PoolInfo memory pool = poolInfo[_pid];
-        UserInfo storage user = userInfo[_pid][_user];
+    function deposit(uint256 _pid, uint256 _amount) public {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][msg.sender];
 
         updatePool(_pid);
 
@@ -188,7 +188,7 @@ contract MasterChef is Ownable {
         user.rewardDebt = user.amount.mul(pool.accOXDPerShare).div(1e12);
 
         if(pending > 0) {
-            safeOXDTransfer(_user, pending);
+            safeOXDTransfer(msg.sender, pending);
         }
         pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 
@@ -197,7 +197,7 @@ contract MasterChef is Ownable {
 
     // Withdraw LP tokens from MasterChef.
     function withdraw(uint256 _pid, uint256 _amount) public {  
-        PoolInfo memory pool = poolInfo[_pid];
+        PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
 
         require(user.amount >= _amount, "withdraw: not good");
@@ -220,16 +220,25 @@ contract MasterChef is Ownable {
     function harvestAll() public {
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
-            UserInfo memory user = userInfo[pid][msg.sender];
+            UserInfo storage user = userInfo[pid][msg.sender];
             if (user.amount > 0) {
-                deposit(pid, 0, msg.sender);
+                PoolInfo storage pool = poolInfo[pid];
+                updatePool(pid);
+
+                uint calc = user.amount.mul(pool.accOXDPerShare).div(1e12);
+                uint pending = calc.sub(user.rewardDebt);
+                user.rewardDebt = calc;
+
+                if(pending > 0) {
+                    safeOXDTransfer(msg.sender, pending);
+                }
             }
         }
     }
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
     function emergencyWithdraw(uint256 _pid) public {
-        PoolInfo memory pool = poolInfo[_pid];
+        PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
 
         uint oldUserAmount = user.amount;
