@@ -6,10 +6,9 @@
 const hre = require("hardhat");
 
 async function main() {
-
-  const tokenName = "Emission Killer";
-  const tokenSymbol = "KILL";
-  const pid = 16;
+	const tokenName = "Emission Killer";
+	const tokenSymbol = "KILL";
+	const pid = 16;
 
 	const Killer = await hre.ethers.getContractFactory("EmissionKiller");
 	const killer = await Killer.deploy(tokenName, tokenSymbol, pid);
@@ -21,8 +20,8 @@ async function main() {
 	await run("verify:verify", {
 		address: killer.address,
 		constructorArguments: [oxd, ohexPerSecond, pid],
-	})
-
+	});
+}
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main()
