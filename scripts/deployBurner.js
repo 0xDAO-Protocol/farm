@@ -6,21 +6,22 @@
 const hre = require("hardhat");
 
 async function main() {
-	const name = "Dummy";
-	const symbol = "Dummy";
-	const pid = 15;
-	const Burner = await hre.ethers.getContractFactory("EmissionKiller");
-	const burner = await Burner.deploy(name, symbol, pid);
 
-	await burner.deployed();
+  const tokenName = "Emission Killer";
+  const tokenSymbol = "KILL";
+  const pid = 16;
+
+	const Killer = await hre.ethers.getContractFactory("EmissionKiller");
+	const killer = await Killer.deploy(tokenName, tokenSymbol, pid);
+
+	await farm.deployed();
+
+	console.log("Killer deployed to:", killer.address);
 
 	await run("verify:verify", {
-		address: burner.address,
-		constructorArguments: [name, symbol, pid],
-	});
-
-	console.log("Burner deployed to:", burner.address); //
-}
+		address: killer.address,
+		constructorArguments: [oxd, ohexPerSecond, pid],
+	})
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
