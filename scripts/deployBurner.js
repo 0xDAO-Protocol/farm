@@ -13,13 +13,13 @@ async function main() {
 	const Killer = await hre.ethers.getContractFactory("EmissionKiller");
 	const killer = await Killer.deploy(tokenName, tokenSymbol, pid);
 
-	await farm.deployed();
+	await killer.deployed();
 
 	console.log("Killer deployed to:", killer.address);
 
 	await run("verify:verify", {
 		address: killer.address,
-		constructorArguments: [oxd, ohexPerSecond, pid],
+		constructorArguments: [tokenName, tokenSymbol, pid],
 	});
 }
 // We recommend this pattern to be able to use async/await everywhere
