@@ -11,16 +11,17 @@ async function main() {
 	const ohexPerSecond = "1000000000000000000000";
 	const startTime = 1642795200;
 	const endTime = startTime + 2000000;
-	const farm = await Farm.deploy(oxd, ohexPerSecond, startTime, endTime);
+	// const farm = await Farm.deploy(oxd, ohexPerSecond, startTime, endTime);
 
-	await farm.deployed();
+	// await farm.deployed();
 
-	console.log("Farm deployed to:", farm.address);
+	// console.log("Farm deployed to:", farm.address);
 
-	await run("verify:verify", {
-		address: farm.address,
-		constructorArguments: [oxd, ohexPerSecond, startTime, endTime],
-	})
+	// await run("verify:verify", {
+	// 	address: farm.address,
+	// 	constructorArguments: [oxd, ohexPerSecond, startTime, endTime],
+	// })
+	const farm = await Farm.attach("0xa7821C3e9fC1bF961e280510c471031120716c3d")
 
 	const pool2 = ["0xD5fa400a24EB2EA55BC5Bd29c989E70fbC626FfF", 0];
 	const wftm = ["0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83", 500];
@@ -38,18 +39,18 @@ async function main() {
 	const fbeets = ["0xfcef8a994209d6916EB2C86cDD2AFD60Aa6F54b1", 15];
 
 	const pairs = [
-		pool2,
-		wftm,
-		eth,
-		btc,
-		usdc,
-		dai,
-		mim,
-		xboo,
-		xscream,
-		lqdr,
-		xtarot,
-		xcredit,
+		// pool2,
+		// wftm,
+		// eth,
+		// btc,
+		// usdc,
+		// dai,
+		// mim,
+		// xboo,
+		// xscream,
+		// lqdr,
+		// xtarot,
+		// xcredit,
 		tomb,
 		fbeets,
 	];
