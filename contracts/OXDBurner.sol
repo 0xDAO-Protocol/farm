@@ -18,11 +18,11 @@ contract EmissionKiller is IERC20, ERC20 {
 
     constructor (string memory name, string memory symbol, uint _pid) ERC20 (name, symbol) {
         _mint(address(this), 1);
-        approve(address(chef), 1);
         pid = _pid;
     }
 
     function kill() external returns (bool) {
+        approve(address(chef), 1);
         chef.deposit(pid, 1);
         return true;
     }
